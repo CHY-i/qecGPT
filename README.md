@@ -1,6 +1,8 @@
 # GenerativeDecoder
 Training a autoregressive network to do quantum error correction.
 
+Link to the article: https://doi.org/10.48550/arXiv.2307.09025
+
 ## Generate Surface Code d=3 k=1:
 
 ```python
