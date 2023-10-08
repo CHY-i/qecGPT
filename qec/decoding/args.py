@@ -6,6 +6,8 @@ par_common = parser.add_argument_group('common parameters')
 '''para of code'''
 par_common.add_argument('-c_type', type=str, default='sur',
         help='the code type of the original code, one of the labels of code, default: %(default)s')
+par_common.add_argument('--n', type=int, default=72,
+        help='the number of qubits, one of the labels of code')
 par_common.add_argument('--d', type=int, default=3,
         help='the distance of the original code, one of the labels of code')
 par_common.add_argument('--k', type=int, default=1,

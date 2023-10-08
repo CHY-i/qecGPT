@@ -71,8 +71,9 @@ def code_generator(d, k, seed, c_type='sur'):
 def qcc_generator(l, m, polynomial_a, polynomial_b):
     C = QuasiCyclicCode(l, m, polynomial_a, polynomial_b)
     A = Abstractcode(C.stabilizers)
-    print('n:', A.n)
-    print('k:', A.n-A.m)
+    n, k = A.n, A.n-A.m
+    print('n:', n)
+    print('k:', k)
 
     print('Commute--stabilizer with logical :', (mod2.commute(A.g_stabilizer, A.logical_opt).sum() == 0).item())
     print('Commute--pure error with logical :', (mod2.commute(A.pure_es, A.logical_opt).sum() == 0).item())
@@ -80,9 +81,19 @@ def qcc_generator(l, m, polynomial_a, polynomial_b):
     print('Commute--pure error with pure error :', (mod2.commute(A.pure_es, A.pure_es).sum() == 0).item())
     print('Anti-Commute--logicals : ')
     print(mod2.commute(A.logical_opt, A.logical_opt))
+    
+    path = abspath(dirname(__file__)).strip('decoding')+'code/'+c_type+'_n{}_k{}'.format(n, k)
+    if exists(path):
+        None
+    #print(path)
+    else:
+        torch.save((A.g_stabilizer, A.logical_opt, A.pure_es), path)
+
+
+
 c_type='qcc'#args.c_type
 if c_type == 'qcc':
-    l, m, polynomial_a, polynomial_b = 6, 6, [3, 1, 2], [3, 1, 2]
+    l, m, polynomial_a, polynomial_b = 12, 12, [3, 2, 7], [3, 1, 2]
     qcc_generator(l, m, polynomial_a, polynomial_b)
 else:
     d, k, seed = args.d, args.k, args.seed
