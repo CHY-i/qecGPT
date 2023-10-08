@@ -5,7 +5,7 @@ import random
 import sys
 from os.path import abspath, dirname, exists
 sys.path.append(abspath(dirname(__file__)).strip('decoding'))
-from module import Surfacecode, Abstractcode, Toric, Rotated_Surfacecode, Sur_3D
+from module import Surfacecode, Abstractcode, Toric, Rotated_Surfacecode, Sur_3D, QuasiCyclicCode
 from module import mod2, read_code, Loading_code
 mod2 = mod2()#dtype = torch.float32, device='cuda:0'
 
@@ -34,6 +34,7 @@ def code_generator(d, k, seed, c_type='sur'):
         elif c_type=='3d':
             S = Sur_3D(d)
             print(S.g_stabilizer.size())
+        
 
         m = S.n-k
         print(m)
@@ -66,6 +67,23 @@ def code_generator(d, k, seed, c_type='sur'):
     print('Anti-Commute--logicals : ')
     print(mod2.commute(A.logical_opt, A.logical_opt))
     #print(mod2.commute(A.pure_es, A.pure_es))
-d, k, seed = args.d, args.k, args.seed
-c_type=args.c_type
-code_generator(d, k, seed, c_type=c_type)
+
+def qcc_generator(l, m, polynomial_a, polynomial_b):
+    C = QuasiCyclicCode(l, m, polynomial_a, polynomial_b)
+    A = Abstractcode(C.stabilizers)
+    print('n:', A.n)
+    print('k:', A.n-A.m)
+
+    print('Commute--stabilizer with logical :', (mod2.commute(A.g_stabilizer, A.logical_opt).sum() == 0).item())
+    print('Commute--pure error with logical :', (mod2.commute(A.pure_es, A.logical_opt).sum() == 0).item())
+    print('Anticommute--pure error with stabilizer :',((mod2.commute(A.g_stabilizer, A.pure_es) - torch.eye(A.m)).sum()==0).item())
+    print('Commute--pure error with pure error :', (mod2.commute(A.pure_es, A.pure_es).sum() == 0).item())
+    print('Anti-Commute--logicals : ')
+    print(mod2.commute(A.logical_opt, A.logical_opt))
+c_type='qcc'#args.c_type
+if c_type == 'qcc':
+    l, m, polynomial_a, polynomial_b = 6, 6, [3, 1, 2], [3, 1, 2]
+    qcc_generator(l, m, polynomial_a, polynomial_b)
+else:
+    d, k, seed = args.d, args.k, args.seed
+    code_generator(d, k, seed, c_type=c_type)

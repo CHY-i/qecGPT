@@ -1,5 +1,5 @@
 
-from .codes import Surfacecode, Sur_3D, Abstractcode, Loading_code, Toric, Rotated_Surfacecode
+from .codes import Surfacecode, Sur_3D, Abstractcode, Loading_code, Toric, Rotated_Surfacecode, QuasiCyclicCode
 from .mod2 import mod2
 from .MADE import MADE
 from .TraDE import TraDE

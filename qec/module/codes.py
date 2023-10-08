@@ -1,6 +1,7 @@
 
 import torch
 import numpy as np
+from numpy.linalg import matrix_power
 import sys
 from os.path import abspath, dirname
 sys.path.append(abspath(dirname(__file__)).strip('module'))
@@ -242,6 +243,40 @@ class Rotated_Surfacecode():
         return errors 
 
 
+def s_matrix(dim):
+    matrix = np.eye(dim)
+    matrix = np.concatenate((matrix[:, -1:], matrix[:, :-1]), axis=1)
+    return matrix
+
+def x_matrix(l, m):
+    return np.kron(s_matrix(l), np.eye(m))
+
+def y_matrix(l, m):
+    return np.kron(np.eye(l), s_matrix(m))
+
+class QuasiCyclicCode:
+    def __init__(self, l, m, polynomial_a, polynomial_b) -> None:
+        assert len(polynomial_a) == len(polynomial_b) == 3
+        self.a_matrices = [
+            matrix_power(m_function(l, m), poly) % 2
+            for m_function, poly in zip([x_matrix, y_matrix, y_matrix], polynomial_a)
+        ]
+        self.a_matrix = sum(self.a_matrices) % 2
+        self.b_matrices = [
+            matrix_power(m_function(l, m), poly) % 2
+            for m_function, poly in zip([y_matrix, x_matrix, x_matrix], polynomial_b)
+        ]
+        self.b_matrix = sum(self.b_matrices) % 2
+        self.hx = np.concatenate([self.a_matrix, self.b_matrix], axis=1)
+        self.hz = np.concatenate([self.b_matrix.T, self.a_matrix.T], axis=1)
+        hx, hz = torch.from_numpy(self.hx), torch.from_numpy(self.hz)
+
+        a = mod2.indep(hx)
+        b = mod2.indep(hz)
+        c = torch.zeros(a.size(0), b.size(1))
+        d = torch.zeros(b.size(0), a.size(1))
+        self.PCM = torch.vstack([torch.hstack([a, c]), torch.hstack([d, b])]).long()
+        self.stabilizers = mod2.xyz(self.PCM)
 
 class Toric():
     def __init__(self, d):
